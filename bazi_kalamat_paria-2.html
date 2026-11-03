@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#6f42a5">
+<title>بازی کلمات | پریا بگجانی</title>
+<style>
+:root{--purple:#7045a5;--deep:#40265f;--pink:#f3dff0;--cream:#fffaf0;--ink:#332541;--green:#23845b;--red:#bd4252}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:Tahoma,"Segoe UI",sans-serif;background:radial-gradient(circle at top right,#f9e7f5,transparent 40%),linear-gradient(135deg,#f9f2ff,#fff8e9);color:var(--ink);display:grid;place-items:center;padding:20px}
+.app{width:min(100%,650px);background:#fff;border:1px solid #eadcf2;border-radius:26px;box-shadow:0 18px 55px #4d2b681c;overflow:hidden}
+.top{height:12px;background:linear-gradient(90deg,#f1a9d6,#9771c9,#6f42a5)}
+main{padding:clamp(22px,5vw,40px)}
+.screen{display:none}.screen.active{display:block}
+h1{font-size:clamp(2rem,7vw,3rem);color:var(--deep);margin:4px 0 12px;text-align:center}
+h2{font-size:1.35rem;color:var(--deep);line-height:1.8;margin:0 0 18px}
+.subtitle{text-align:center;color:#786884;line-height:2;margin:0 0 26px}
+.details{background:var(--cream);border:1px solid #f0e4ce;border-radius:18px;padding:18px;text-align:center;line-height:2.2;margin:22px 0}
+.details strong{display:block;font-size:1.12rem;color:var(--deep)}
+.tag{display:inline-block;background:var(--pink);color:var(--deep);padding:7px 14px;border-radius:30px;font-size:.9rem}
+button{font:inherit;cursor:pointer;border:0}
+.primary{width:100%;padding:15px 20px;border-radius:15px;background:linear-gradient(120deg,#8056b5,#60358e);color:#fff;font-weight:bold;font-size:1.05rem;box-shadow:0 7px 18px #7045a533;transition:.15s}
+.primary:hover{filter:brightness(1.06);transform:translateY(-1px)}
+.progressrow{display:flex;justify-content:space-between;align-items:center;color:#75667f;font-size:.9rem;margin-bottom:10px}
+.track{height:9px;background:#f0eaf4;border-radius:10px;overflow:hidden;margin-bottom:25px}
+.bar{height:100%;width:0;background:linear-gradient(90deg,#d68cc7,#7045a5);transition:width .25s}
+.question{font-size:1.25rem;line-height:2;margin-bottom:20px}
+.options{display:grid;gap:11px}
+.option{width:100%;text-align:right;background:#fcfaff;border:1.5px solid #e9def0;padding:14px 16px;border-radius:14px;color:var(--ink);transition:.15s;line-height:1.6}
+.option:hover:not(:disabled){border-color:#9874ba;background:#f8f1fc}
+.option:disabled{cursor:default}
+.option.correct{background:#e9f7f0;border-color:#68b58e;color:#176644}
+.option.wrong{background:#fff0f1;border-color:#dc8790;color:#9e2938}
+.feedback{display:none;margin:17px 0 0;padding:13px 15px;border-radius:13px;line-height:1.9}
+.feedback.show{display:block}.feedback.good{background:#eaf7f0;color:#176644}.feedback.bad{background:#fff0f1;color:#9e2938}
+.next{margin-top:18px}
+.result{text-align:center}
+.score{font-size:2.5rem;font-weight:bold;color:var(--purple);margin:12px 0}
+.result p{line-height:2;color:#6e6077}
+.small{font-size:.83rem;color:#95899e;text-align:center;margin-top:18px}
+@media(max-width:420px){body{padding:10px}.app{border-radius:20px}main{padding:22px 18px}.question{font-size:1.1rem}}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="top"></div>
+<main>
+<section id="start" class="screen active">
+  <div style="text-align:center"><span class="tag">آزمون کوتاه عربی</span></div>
+  <h1>بازی کلمات</h1>
+  <p class="subtitle">بخوان، فکر کن و گزینهٔ درست را انتخاب کن!</p>
+  <div class="details">
+    <strong>پریا بگجانی</strong>
+    کلاس ۹۰۱
+    <hr style="border:0;border-top:1px solid #eadfcf;margin:12px 0">
+    دبیر: سرکار خانم صادق زاده<br>
+    دبیرستان بتول بقا
+  </div>
+  <p class="subtitle">۸ سؤال • هر پاسخ درست یک امتیاز</p>
+  <button class="primary" id="startBtn">شروع بازی</button>
+  <div class="small">موفق باشی 🌷</div>
+</section>
+
+<section id="quiz" class="screen">
+  <div class="progressrow"><span id="counter">سؤال ۱ از ۸</span><span id="scoreNow">امتیاز: ۰</span></div>
+  <div class="track"><div class="bar" id="bar"></div></div>
+  <h2 id="question" class="question"></h2>
+  <div id="options" class="options"></div>
+  <div id="feedback" class="feedback" aria-live="polite"></div>
+  <button id="nextBtn" class="primary next" style="display:none">سؤال بعدی</button>
+</section>
+
+<section id="result" class="screen result">
+  <span class="tag">پایان بازی</span>
+  <h1>آفرین! 🌟</h1>
+  <p>نتیجهٔ بازی کلمات تو:</p>
+  <div class="score" id="finalScore">۰ از ۸</div>
+  <p id="message"></p>
+  <button class="primary" id="againBtn">دوباره بازی کن</button>
+  <div class="small">بازی کلمات • پریا بگجانی • کلاس ۹۰۱</div>
+</section>
+</main>
+</div>
+<script>
+const questions = [
+ {q:"ضمیر فعل امر «اُخرُجی» کدام است؟",o:["اَنتَ","اَنتِ","اَنتما","اَنتن"],a:1},
+ {q:"ضمیر فعل امر «اُکتُب» کدام است؟",o:["اَنتِ","اَنتن","اَنتما","اَنتَ"],a:3},
+ {q:"وزن «یُخرِجُ» کدام است؟",o:["فَعَلَ","مفعول","فاعل","یُفعِلُ"],a:3},
+ {q:"شمارهٔ صیغهٔ «اُخرُج» کدام است؟",o:["۸","۷","۹","۱۰"],a:1},
+ {q:"معنی واژهٔ «حَسِبَ» کدام است؟",o:["قبول کرد","حساب کرد","پنداشت","بوسید"],a:2},
+ {q:"مضارع «قَبَلَ» کدام است؟",o:["یُقَبِّلُ","یَقبِل","قَبَلَ","قَبل"],a:0},
+ {q:"جمع واژهٔ «مَخزَن» کدام است؟",o:["مخزنان","مخزان","مخازن","مخزنا"],a:2},
+ {q:"معنی «طَرَقَ» کدام است؟",o:["می‌کوبد","کوبید","خواهد کوبید","بکوب"],a:1}
+];
+const screens=["start","quiz","result"];
+let index=0,score=0,answered=false;
+const $=id=>document.getElementById(id);
+function show(id){screens.forEach(s=>$(s).classList.toggle("active",s===id))}
+function faNum(n){return String(n).replace(/\d/g,d=>"۰۱۲۳۴۵۶۷۸۹"[+d])}
+function start(){index=0;score=0;show("quiz");render()}
+function render(){
+ answered=false;
+ const item=questions[index];
+ $("counter").textContent=`سؤال ${faNum(index+1)} از ${faNum(questions.length)}`;
+ $("scoreNow").textContent=`امتیاز: ${faNum(score)}`;
+ $("bar").style.width=`${index/questions.length*100}%`;
+ $("question").textContent=item.q;
+ $("feedback").className="feedback";$("feedback").textContent="";
+ $("nextBtn").style.display="none";
+ $("nextBtn").textContent=index===questions.length-1?"دیدن نتیجه":"سؤال بعدی";
+ $("options").innerHTML="";
+ item.o.forEach((option,i)=>{
+   const b=document.createElement("button");b.className="option";
+   b.textContent=`${faNum(i+1)}. ${option}`;
+   b.addEventListener("click",()=>choose(i,b));
+   $("options").appendChild(b);
+ });
+}
+function choose(choice,button){
+ if(answered)return;answered=true;
+ const item=questions[index],buttons=[...$("options").children];
+ buttons.forEach((b,i)=>{b.disabled=true;if(i===item.a)b.classList.add("correct")});
+ const fb=$("feedback");
+ if(choice===item.a){score++;fb.textContent="آفرین! پاسخ درست است. 🌟";fb.classList.add("good")}
+ else{button.classList.add("wrong");fb.textContent=`این گزینه درست نیست. پاسخ صحیح: ${faNum(item.a+1)}. ${item.o[item.a]}`;fb.classList.add("bad")}
+ fb.classList.add("show");
+ $("scoreNow").textContent=`امتیاز: ${faNum(score)}`;
+ $("nextBtn").style.display="block";
+}
+function next(){if(index<questions.length-1){index++;render()}else finish()}
+function finish(){
+ show("result");$("bar").style.width="100%";
+ $("finalScore").textContent=`${faNum(score)} از ${faNum(questions.length)}`;
+ $("message").textContent=score===8?"بی‌نظیر! به همهٔ سؤال‌ها درست جواب دادی.":score>=5?"خیلی خوب بود! کمی تمرین بیشتر و عالی‌تر می‌شی.":"تلاش خوبی بود! دوباره بازی کن و دانسته‌هات رو بسنج.";
+}
+$("startBtn").addEventListener("click",start);
+$("nextBtn").addEventListener("click",next);
+$("againBtn").addEventListener("click",start);
+</script>
+</body>
+</html>
